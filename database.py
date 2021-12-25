@@ -30,3 +30,7 @@ class Database:
         self.cursor.execute(f'INSERT INTO `Players` (`name`) VALUES ("{playername}")')
         self.db.commit()
         return(True)
+
+    def get_wins(self, playername):
+        self.cursor.execute(f'SELECT COUNT(`Match`.`winner`) from `Match` INNER JOIN `Players` ON `Match`.`winner`=`Players`.id WHERE `Players`.name = "{playername}"')
+        return self.cursor.fetchall()

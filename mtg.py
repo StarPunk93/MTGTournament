@@ -16,3 +16,8 @@ class MTG:
         else:
             self.db.add_player(playername)
             return(True)
+
+    def get_points(self, playername):
+        wins = self.db.get_wins(playername)
+        points = wins[0][0]
+        return(points)

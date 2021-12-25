@@ -30,7 +30,7 @@ def players(request):
     if 'Spielername' in request.GET:
         newplayer = request.GET['Spielername']
         addedplayer = mtg.add_player(newplayer)
-        print(adddedplayer)
+        print(addedplayer)
         if addedplayer is True:
             site = site + f"<p class='notice'>{newplayer} wurde hinzugefügt.</p>"
         else:
@@ -38,9 +38,11 @@ def players(request):
     player = mtg.get_players()
     site = site + "<form action=players><input type='text' id='playername' name='Spielername'><br><input type='submit' value='Spieler hinzufügen'></form></br> "
     if player is not ():
+
         site = site + "<div id=player><table><tr><th>Spieler</th><th>Punkte</th></tr>"
         for p in player:
-            site = site + f"<tr><td>{p[1]}</td><td>#TODO PUNKTE</td></tr>"
+            player_points = mtg.get_points(p[1])
+            site = site + f"<tr><td>{p[1]}</td><td>{player_points}</td></tr>"
         site = site + "</table></div>"
         return  Response(site)
     else:
