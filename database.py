@@ -76,6 +76,7 @@ class Database:
     def delete_deck_cards(self, deckid):
         self.cursor.execute(f'DELETE FROM Decks_Cards WHERE deck_id = "{deckid}"')
         self.db.commit()
+        return(True)
 
     def add_card_to_deck_by_edition(self, deckid, edition, card_number):
         cardid = self.query(f'SELECT cardid FROM cards WHERE `set` = "{edition}" AND `number` = "{card_number}"')[0][0]
