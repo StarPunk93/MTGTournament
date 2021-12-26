@@ -28,7 +28,7 @@ def header(site):
         link_name = link.strip('/').upper()
         if link_name == '':
             link_name = 'INDEX'
-        site = site + f"<a href={link}><div style='padding: 3px; width: 200px; border-style: solid; border-color: { secondarycolor }; text-align: center; margin: 0 auto; background: { primarycolor }'>{link_name}</div></a>"
+        site = site + f"<a  href={link}><div style='padding: 3px; width: 200px; border-style: solid; border-color: { secondarycolor }; text-align: center; margin: 0 auto; background: { primarycolor }'>{link_name}</div></a>"
     site = site + '</div>'
     return(site)
 
@@ -122,21 +122,43 @@ def matches(request):
 def decks(request):
     site = header('')
     if 'DeckCreator' in request.POST:
+        editions = mtg.get_editions()
+        site = site + f'<div><p>Decklisten müssen Zeilenweise in dem Format: KÜRZEL, KARTNUMMER als CSV angelegt werden.</br> Die Karten Nummer findet sich in der unteren rechten Ecke der Karte und die Kürzel der entprechenden Set-Editionen können aus der Tabelle entnommen werden.</p></div>'
+        site = site + f'<table><tr style="background: {primarycolor}"><th style="width: 5em; border-right: solid">Kürzel</th><th>Edition</th></tr>'
+        color = secondarycolor
+        for edition in editions:
+            site = site + f'<tr style="background: {color}"><td style="border-right: solid">{edition[0]}</td><td>{edition[1]}</td></tr>'
+            if color == secondarycolor:
+                color = thirdcolor
+            else:
+                color = secondarycolor
+        site = site + f'</table></br>'
         ### Deck Upload TXT File
-        #print(request.POST)
-        #nextDeckID = str(mtg.get_max_deckid() + 1)
-        #print(nextDeckID)
         if 'Deckliste' in request.POST:
             if 'player' in request.POST:
                 filename = request.params['Deckliste']
                 print(filename)
                 player = request.POST['player']
-                open('/tmp/' + player, 'wb').write(filename.file.read())
+                open('decks/' + player, 'wb').write(filename.file.read())
                 mtg.create_deck(player)
-        site = site + f'<form action=decks method=POST enctype="multipart/form-data"><input type="hidden" name="DeckCreator"><input type="file" enctype="multipart/form-data" name="Deckliste"><input type="text" name="player" placeholder=Spielername"><input type="submit"></form>'
-        cards = mtg.get_cards()
+        player = mtg.get_players()
+        if player is not ():
+            site = site + f'<div style="padding: 15px;display: flex;"><form style="background: {primarycolor}" action=decks method=POST enctype="multipart/form-data" ><input type="hidden" name="DeckCreator"><input type="file" enctype="multipart/form-data" name="Deckliste">'
+            site = site + f'<input name="player" list="players"><datalist id="players">'
+            for p in player:
+                site = site + f'<option value={p[1]}>'
+            site = site + f'</datalist><input type="submit"></form></div>'
+
+    elif 'Show' in request.POST:
+        deckid = request.POST['Show']
+        cards = mtg.get_cards_by_deck(deckid)
+        print(cards)
+        site = site + "<div style='display: flex'>"
         for card in cards:
-            site = site + str(card[5]) + str(card[1]) + '</br>'
+            site = site + f'<div style=""><p>Name: {card[1]}</p><p>Typ: {card[5]}</p><img src="{card[7]}"></div>'
+        site = site + "</div>"
+        return Response(site)
+
     else:
         decks = mtg.get_decks()
         if decks is not ():
@@ -144,7 +166,7 @@ def decks(request):
             for deck in decks:
                 deckid = deck[0]
                 player = deck[1]
-                site = site + f'<tr><td>{deckid}</td><td>{player}</td><td><form action="decks" metho="POST"><input type="submit" value="Edit" name={deckid}</input></form></td></tr>'
+                site = site + f'<tr><td><form action="decks" method="POST"><input type="submit" value="{deckid}" name=Show placeholder="Show"></input></form></td><td>{player}</td><td></td></tr>'
             site = site + f'</table>'
         site = site + f'<form method="POST" action="decks"><input type="submit" name="DeckCreator" value="DeckCreator"></form>'
     return Response(site)
