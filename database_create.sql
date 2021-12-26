@@ -12,16 +12,14 @@ CREATE TABLE `Match`
 (
  `id`      integer NOT NULL AUTO_INCREMENT,
  `player1` integer NOT NULL ,
- `winner`  integer NOT NULL ,
  `player2` integer NOT NULL ,
+  `winner`  integer NULL,
 
 PRIMARY KEY (`id`),
 KEY `FK_46` (`player1`),
 CONSTRAINT `FK_44` FOREIGN KEY `FK_46` (`player1`) REFERENCES `Players` (`id`),
 KEY `FK_49` (`player2`),
-CONSTRAINT `FK_47` FOREIGN KEY `FK_49` (`player2`) REFERENCES `Players` (`id`),
-KEY `FK_52` (`winner`),
-CONSTRAINT `FK_50` FOREIGN KEY `FK_52` (`winner`) REFERENCES `Players` (`id`)
+CONSTRAINT `FK_47` FOREIGN KEY `FK_49` (`player2`) REFERENCES `Players` (`id`)
 );
 
 CREATE TABLE `Decks`
