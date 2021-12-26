@@ -4,7 +4,7 @@ By now it's a WIP Project.
 
 This is gonna be a Webtool for MTG Tournaments.
 
-The `create_database.sql` need to be manually run on a MySQL Database.
+The `database_create.sql` need to be manually run on a MySQL Database.
 `mtg_getcards.py` gets the card Data from the API of [gatherer.wizards.com](https://gatherer.wizards.com).
 
 ## Python Requirements
