@@ -19,7 +19,7 @@ class MTG:
 
     def delete_player(self, playername):
         if self.db.player_exists(playername) is True:
-            self.db.query(f'DELETE FROM Players WHERE `name`="{playername}"')
+            self.db.delete_player(playername)
 
     def get_points(self, playername):
         wins = self.db.get_wins(playername)
