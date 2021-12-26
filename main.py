@@ -175,9 +175,6 @@ if __name__ == "__main__":
     db = Database()
     mtg = MTG(db)
 
-    urls = mtg.get_card_urls()
-    type(urls)
-
     with Configurator() as config:
         config.add_route('index', '/')
         config.add_view(index, route_name='index')
