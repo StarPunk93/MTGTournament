@@ -36,14 +36,6 @@ def index(requests):
     site = header('')
     return Response(site)
 
-
-
-def cards(request):
-    cards = header('')
-    for card in urls:
-        cards = cards + f'<img src={card[0]}>'
-    return Response(cards)
-
 def players(request):
     site = header('')
     if 'delete' in request.POST:
@@ -178,8 +170,6 @@ if __name__ == "__main__":
     with Configurator() as config:
         config.add_route('index', '/')
         config.add_view(index, route_name='index')
-        config.add_route('cards', '/cards')
-        config.add_view(cards, route_name='cards')
         config.add_route('players', '/players')
         config.add_view(players, route_name='players')
         config.add_route('matches', '/matches')
