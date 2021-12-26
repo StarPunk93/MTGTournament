@@ -10,6 +10,10 @@ from pyramid.response import Response
 hostName = "localhost"
 serverPort = 8080
 
+primarycolor = '#DBDBDB'
+secondarycolor = '#7A7A7A'
+thirdcolor = '#A8A8A8'
+
 def header(site):
     site = site + '<div style="display: flex; height: 50px" id="contenttable">'
     for route in app.routes_mapper.routelist:
@@ -17,7 +21,7 @@ def header(site):
         link_name = link.strip('/').upper()
         if link_name == '':
             link_name = 'INDEX'
-        site = site + f"<a href={link}><div style='padding: 3px; width: 200px; border-style: solid; text-align: center; margin: 0 auto; background: lightgrey'>{link_name}</div></a>"
+        site = site + f"<a href={link}><div style='padding: 3px; width: 200px; border-style: solid; border-color: { secondarycolor }; text-align: center; margin: 0 auto; background: { primarycolor }'>{link_name}</div></a>"
     site = site + '</div>'
     return(site)
 
@@ -38,7 +42,7 @@ def players(request):
     if 'delete' in request.GET:
         deleteplayer = request.GET['delete']
         mtg.delete_player(deleteplayer)
-        site = site + ' ' + deleteplayer + ' wurde gelöscht.'
+        site = site + ' ' + deleteplayer + ' wurde gelöscht.<br>'
 
     if 'Spielername' in request.GET:
         newplayer = request.GET['Spielername']
@@ -50,16 +54,21 @@ def players(request):
             site = site + f"<p class='notice'>{newplayer} existiert bereits.</p>"
 
     player = mtg.get_players()
-    site = site + "<div id=playeradd><form id='playerform' action=players><input type='text' id='playername' name='Spielername' placeholder='Spielername'><br><br><input type='submit' value='Spieler hinzufügen'></form></div></br> "
+    site = site + f"<div id=playeradd style='display: flex'><form style='padding: 15px; background: {primarycolor}' id='playerform' action=players><input type='text' id='playername' name='Spielername' placeholder='Spielername'><br><br><input type='submit' value='Spieler hinzufügen'></form></div></br> "
     if player is not ():
-        site = site + "<div id=player><form action=players id='playerdelete'><table><tr><th style='padding-right: 10px'>Spieler</th><th style='padding-right: 10px'>Punkte</th><th/></tr>"
+        site = site + f'<div id=player><form action=players id="playerdelete"><table><tbody><tr style="background: {primarycolor}"><th style="padding-right: 10px">Spieler</th><th style="padding-right: 10px">Punkte</th><th/></tr>'
+        color = secondarycolor
         for p in player:
             player_points = mtg.get_points(p[1])
-            site = site + f"<tr><td style='padding-right: 20px'>{p[1]}</td><td style='padding-right: 20px'>{player_points}</td><td style='padding-right: 10px'><input type='radio' name='delete' value='{p[1]}'><label for={p[1]}'>Löschen</label></td></tr>"
-        site = site + "<tr><td></td><td></td><td><input type='submit'></td></tr></table></div>"
+            site = site + f"<tr style='background: {color}'><td style='padding-right: 20px'>{p[1]}</td><td style='padding-right: 20px'>{player_points}</td><td style='padding-right: 10px'><input type='radio' name='delete' value='{p[1]}'><label for={p[1]}'>Löschen</label></td></tr>"
+            if color == secondarycolor:
+                color = thirdcolor
+            else:
+                color = secondarycolor
+        site = site + "<tr><td></td><td></td><td><input type='submit'></td></tr></tbody></table></div>"
         return  Response(site)
     else:
-        return Response('<p>Keine Spieler registriert.</p>' + site)
+        return Response( site + '<p>Keine Spieler registriert.</p>' )
 
 def matches(request):
     if 'CreateMatches' in request.GET:
@@ -75,20 +84,18 @@ def matches(request):
             #print(winner)
             #print(matchid)
             mtg.set_matchwinner(matchid, winner)
-
     site = header('')
     matches = mtg.get_matches()
     matchnummer = 0
     rows = len(matches) / 3
-    print(type(rows))
     if not rows.is_integer():
         rows = rows + 1
     rows = int(rows)
-    site = site + '<div style="padding-left: 15px; padding-right: 15px;"><div style="background: darkgrey; display: grid; grid-template-columns: auto auto auto; grid-row-gap: 25px; grid-column-gap: 25px; padding: 10px; grid-template-rows: ' +  "210px " * rows + '">'
+    site = site + f'<div style="padding-left: 15px; padding-right: 15px;"><div style="background: {secondarycolor}; display: grid; grid-template-columns: auto auto auto; grid-row-gap: 25px; grid-column-gap: 25px; padding: 10px; grid-template-rows: ' +  "210px " * rows + '">'
     for match in matches:
         #print(match)
         matchnummer = matchnummer + 1
-        site = site + f'<div class="match" style="background: lightgrey; padding-left: 3%"><h3>Match {matchnummer}</h3>'
+        site = site + f'<div class="match" style="background: { primarycolor }; padding-left: 3%"><h3>Match {matchnummer}</h3>'
         site = site + f'<table style="padding: 10px"><tr><th style="width: 150px">Spieler 1</th><th style="width: 150px">Spieler 2</th></tr><tr><td>{match[0]}</td><td>{match[1]}</td></tr>'
         if match[2] is not 0:
             site = site + f'<tr><td>Winner:</td><td><b>{match[match[2] - 1]}</b></td></tr>'
@@ -98,10 +105,7 @@ def matches(request):
             site = site + f'<tr></tr><form action=matches><tr><td><input type="hidden" name="matchid" value={match[3]}><input name="player" list="{match[3]}"><datalist id="{match[3]}"><option value={match[0]}><option value={match[1]}></datalist></td><td><input type="submit" name="winner" value="Match abschließen"></td></tr>'
             #site = site + f'<tr><td><input type="submit" name="winner" value="Match abschließen"></td><td></td></tr></form>'
         site = site + '</table></div>'
-
     site = site + '</div></div>'
-
-
     site = site + '<div style="display: flex"><form action=matches><input type="submit" name="CreateMatches" value="Matches erstellen"></form>'
     site = site + '<form action=matches><input type="submit" name="DeleteMatches" value="Matches löschen"></form></div>'
     return Response(site)

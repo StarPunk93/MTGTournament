@@ -31,6 +31,11 @@ class Database:
         self.db.commit()
         return(True)
 
+    def delete_player(self, playername):
+        self.cursor.execute(f'DELETE FROM Players WHERE `name`="{playername}"')
+        self.db.commit()
+        return(True)
+
     def get_wins(self, playername):
         wins = self.query(f'SELECT COUNT(`Match`.player1) FROM `Match` INNER JOIN `Players` ON `Match`.player1=`Players`.id WHERE `Players`.name = "{playername}" AND `Match`.winner = "1"')[0][0]
         wins = wins + self.query(f'SELECT COUNT(`Match`.player2) FROM `Match` INNER JOIN `Players` ON `Match`.player2=`Players`.id WHERE `Players`.name = "{playername}" AND `Match`.winner = "2"')[0][0]
