@@ -62,3 +62,22 @@ class Database:
         if self.query(f'SELECT player2 FROM `Match` WHERE player2 = "{winnerid}" AND id = "{matchid}"') is not ():
             self.cursor.execute(f'UPDATE `Match` SET winner = "2" WHERE id = "{matchid}"')
         self.db.commit()
+
+    def create_deck(self, playerid):
+        deckid = self.query(f'SELECT id FROM Decks WHERE player_id = "{playerid}"')
+        if deckid is ():
+            self.cursor.execute(f'INSERT INTO Decks (player_id) VALUES ("{playerid}")')
+            self.db.commit()
+            deckid = self.query(f'SELECT id FROM Decks WHERE player_id = "{playerid}"')
+
+        deckid = deckid[0][0]
+        return(deckid)
+
+    def delete_deck_cards(self, deckid):
+        self.cursor.execute(f'DELETE FROM Decks_Cards WHERE deck_id = "{deckid}"')
+        self.db.commit()
+
+    def add_card_to_deck_by_edition(self, deckid, edition, card_number):
+        cardid = self.query(f'SELECT cardid FROM cards WHERE `set` = "{edition}" AND `number` = "{card_number}"')[0][0]
+        self.cursor.execute(f'INSERT INTO Decks_Cards (deck_id, card_id) VALUES ("{deckid}", "{cardid}")')
+        self.db.commit()

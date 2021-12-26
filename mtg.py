@@ -1,3 +1,5 @@
+import csv
+
 class MTG:
     def __init__(self, database):
         self.db = database
@@ -53,5 +55,40 @@ class MTG:
         return(True)
 
     def set_matchwinner(self, matchid, winner):
+        print(winner)
+        print(matchid)
         winnerid = self.db.query(f'SELECT `Players`.id FROM `Players` WHERE name = "{winner}"')[0][0]
+        print(winnerid)
         self.db.set_matchwinner(matchid, winnerid)
+
+    def get_decks(self):
+        decks = self.db.query(f'SELECT Decks.id, Players.name, Players.id FROM Decks INNER JOIN Players ON Players.id=Decks.player_id')
+        return(decks)
+
+    def get_cards(self):
+        cards = self.db.query(f'SELECT cardid, name, colors, type, supertypes, number FROM cards')
+        return(cards)
+
+    def get_max_deckid(self):
+        deckid = self.db.query(f'SELECT MAX(id) FROM Decks')[0][0]
+        if deckid is None:
+            deckid = 0
+        return(deckid)
+
+    def create_deck(self, player):
+        playerid = self.db.query(f'SELECT id FROM Players WHERE name = "{player}"')[0][0]
+        print(playerid)
+        deckid = self.db.create_deck(playerid)
+        self.db.delete_deck_cards(deckid)
+        with open('decks/' + player) as csv_file:
+            csv_reader = csv.reader(csv_file)
+            for row in csv_reader:
+                edition = row[0]
+                card_number = row[1]
+                self.db.add_card_to_deck_by_edition(deckid, edition, card_number)
+
+    def get_editions(self):
+        return(self.db.query(f'SELECT `set`, `setName` FROM cards GROUP BY `set`'))
+
+    def get_cards_by_deck(self, deckid):
+        return(self.db.query(f'SELECT `set`, name, colors, cmc, manaCost, type, subtypes, imageUrl FROM cards INNER JOIN Decks_Cards ON Decks_Cards.card_id=cards.cardid WHERE Decks_Cards.deck_id = "{deckid}"'))
