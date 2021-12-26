@@ -2,9 +2,11 @@
 import sqlalchemy
 import requests
 import json
-import sqlite3
+import MySQLdb
+from config import Config
 
 import pandas as pd
+from pandas.io import sql
 from sqlalchemy import create_engine
 
 
@@ -41,8 +43,18 @@ frames = [df1, df2, df3, df4, df5]
 result = pd.concat(frames, verify_integrity = True)
 result = result.astype(str)
 
-engine = create_engine('sqlite:///cards.db', echo=True)
+server = Config.DATABASE_CONFIG['server']
+user = Config.DATABASE_CONFIG['user']
+password = Config.DATABASE_CONFIG['password']
+db = Config.DATABASE_CONFIG['name']
+
+engine=create_engine(f'mysql+pymysql://{user}:{password}@{server}:3306/{db}'
+
+            )
+
+#result.to_sql(con=con, name='cards', if_exists='replace')
+# engine = create_engine('sqlite:///cards.db', echo=True)
 with engine.begin() as connection:
-    result.to_sql('cards', con=connection, if_exists='replace', method=None)
+     result.to_sql('cards', con=connection, if_exists='append', method=None)
 
 print(result)

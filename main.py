@@ -14,6 +14,13 @@ primarycolor = '#DBDBDB'
 secondarycolor = '#7A7A7A'
 thirdcolor = '#A8A8A8'
 
+green = '#00733d'
+blue = '#0e68ab'
+red = '#d32029'
+white = '#f8e7b9'
+black = '#a69f9d'
+
+
 def header(site):
     site = site + '<div style="display: flex; height: 50px" id="contenttable">'
     for route in app.routes_mapper.routelist:
@@ -39,13 +46,13 @@ def cards(request):
 
 def players(request):
     site = header('')
-    if 'delete' in request.GET:
-        deleteplayer = request.GET['delete']
+    if 'delete' in request.POST:
+        deleteplayer = request.POST['delete']
         mtg.delete_player(deleteplayer)
         site = site + ' ' + deleteplayer + ' wurde gelöscht.<br>'
 
-    if 'Spielername' in request.GET:
-        newplayer = request.GET['Spielername']
+    if 'Spielername' in request.POST:
+        newplayer = request.POST['Spielername']
         addedplayer = mtg.add_player(newplayer)
         print(addedplayer)
         if addedplayer is True:
@@ -54,9 +61,9 @@ def players(request):
             site = site + f"<p class='notice'>{newplayer} existiert bereits.</p>"
 
     player = mtg.get_players()
-    site = site + f"<div id=playeradd style='display: flex'><form style='padding: 15px; background: {primarycolor}' id='playerform' action=players><input type='text' id='playername' name='Spielername' placeholder='Spielername'><br><br><input type='submit' value='Spieler hinzufügen'></form></div></br> "
+    site = site + f"<div id=playeradd style='display: flex'><form method='POST' style='padding: 15px; background: {primarycolor}' id='playerform' action=players><input type='text' id='playername' name='Spielername' placeholder='Spielername'><br><br><input type='submit' value='Spieler hinzufügen'></form></div></br> "
     if player is not ():
-        site = site + f'<div id=player><form action=players id="playerdelete"><table><tbody><tr style="background: {primarycolor}"><th style="padding-right: 10px">Spieler</th><th style="padding-right: 10px">Punkte</th><th/></tr>'
+        site = site + f'<div id=player><form method="POST" action=players id="playerdelete"><table><tbody><tr style="background: {primarycolor}"><th style="padding-right: 10px">Spieler</th><th style="padding-right: 10px">Punkte</th><th/></tr>'
         color = secondarycolor
         for p in player:
             player_points = mtg.get_points(p[1])
@@ -71,16 +78,18 @@ def players(request):
         return Response( site + '<p>Keine Spieler registriert.</p>' )
 
 def matches(request):
-    if 'CreateMatches' in request.GET:
+    if 'CreateMatches' in request.POST:
         mtg.create_all_matches()
 
-    if 'DeleteMatches' in request.GET:
+    if 'DeleteMatches' in request.POST:
         mtg.delete_all_matches()
 
-    if 'winner' in request.GET:
-        if 'player' in request.GET:
-            winner = request.GET['player']
-            matchid = request.GET['matchid']
+    if 'winner' in request.POST:
+        if 'player' in request.POST:
+            winner = request.POST['player']
+            matchid = request.POST['matchid']
+            print(request.POST)
+            print(winner)
             #print(winner)
             #print(matchid)
             mtg.set_matchwinner(matchid, winner)
@@ -102,12 +111,42 @@ def matches(request):
         else:
             site = site + f'<tr><td>Winner:</td><td>-</td></tr>'
 
-            site = site + f'<tr></tr><form action=matches><tr><td><input type="hidden" name="matchid" value={match[3]}><input name="player" list="{match[3]}"><datalist id="{match[3]}"><option value={match[0]}><option value={match[1]}></datalist></td><td><input type="submit" name="winner" value="Match abschließen"></td></tr>'
+            site = site + f'<tr></tr><form method="POST" action=matches><tr><td><input type="hidden" name="matchid" value={match[3]}><input name="player" list="{match[3]}"><datalist id="{match[3]}"><option value={match[0]}><option value={match[1]}></datalist></td><td><input type="submit" name="winner" value="Match abschließen"></td></form></tr>'
             #site = site + f'<tr><td><input type="submit" name="winner" value="Match abschließen"></td><td></td></tr></form>'
         site = site + '</table></div>'
     site = site + '</div></div>'
-    site = site + '<div style="display: flex"><form action=matches><input type="submit" name="CreateMatches" value="Matches erstellen"></form>'
-    site = site + '<form action=matches><input type="submit" name="DeleteMatches" value="Matches löschen"></form></div>'
+    site = site + '<div style="display: flex"><form method="POST" action=matches><input type="submit" name="CreateMatches" value="Matches erstellen"></form>'
+    site = site + '<form method="POST" action=matches><input type="submit" name="DeleteMatches" value="Matches löschen"></form></div>'
+    return Response(site)
+
+def decks(request):
+    site = header('')
+    if 'DeckCreator' in request.POST:
+        ### Deck Upload TXT File
+        #print(request.POST)
+        #nextDeckID = str(mtg.get_max_deckid() + 1)
+        #print(nextDeckID)
+        if 'Deckliste' in request.POST:
+            if 'player' in request.POST:
+                filename = request.params['Deckliste']
+                print(filename)
+                player = request.POST['player']
+                open('/tmp/' + player, 'wb').write(filename.file.read())
+                mtg.create_deck(player)
+        site = site + f'<form action=decks method=POST enctype="multipart/form-data"><input type="hidden" name="DeckCreator"><input type="file" enctype="multipart/form-data" name="Deckliste"><input type="text" name="player" placeholder=Spielername"><input type="submit"></form>'
+        cards = mtg.get_cards()
+        for card in cards:
+            site = site + str(card[5]) + str(card[1]) + '</br>'
+    else:
+        decks = mtg.get_decks()
+        if decks is not ():
+            site = site + f'<table><tr><th>DeckID</th><th>Spieler</th><th></th></tr>'
+            for deck in decks:
+                deckid = deck[0]
+                player = deck[1]
+                site = site + f'<tr><td>{deckid}</td><td>{player}</td><td><form action="decks" metho="POST"><input type="submit" value="Edit" name={deckid}</input></form></td></tr>'
+            site = site + f'</table>'
+        site = site + f'<form method="POST" action="decks"><input type="submit" name="DeckCreator" value="DeckCreator"></form>'
     return Response(site)
 
 if __name__ == "__main__":
@@ -126,6 +165,8 @@ if __name__ == "__main__":
         config.add_view(players, route_name='players')
         config.add_route('matches', '/matches')
         config.add_view(matches, route_name='matches')
+        config.add_route('decks', '/decks')
+        config.add_view(decks, route_name='decks')
         app = config.make_wsgi_app()
     server = make_server('0.0.0.0', 8080, app)
     server.serve_forever()
