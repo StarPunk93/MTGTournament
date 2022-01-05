@@ -30,7 +30,7 @@ class MTG:
 
     def get_matches(self):
         ### Output format: tuple(player1, player2, winner)
-        matches = self.db.query('SELECT `Players`.name, `match`.player2, `match`.winner, `match`.id FROM `Match` INNER JOIN `Players` ON `Match`.player1=`Players`.id')
+        matches = self.db.query('SELECT `Players`.name, `Match`.player2, `Match`.winner, `Match`.id FROM `Match` INNER JOIN `Players` ON `Match`.player1=`Players`.id')
         matches_with_names = []
         for match in matches:
             player2name = self.db.query(f'SELECT `Players`.name FROM `Players` WHERE `id`="{match[1]}"')
